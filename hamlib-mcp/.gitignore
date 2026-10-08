@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+build/
+.env
+.env.*
+!.env.example
+*.log
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Local Hamlib binaries (install separately; see README)
+vendor/
+*.zip
+work.txt
