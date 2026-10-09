@@ -76,13 +76,13 @@ def find_rigctl(explicit: str | None = None) -> str:
             return str(path)
         raise RigError(f"rigctl not found at HAMLIB_RIGCTL={explicit}")
 
-    which = shutil.which("rigctl")
-    if which:
-        return which
-
     vendor = _vendor_rigctl()
     if vendor and vendor.is_file():
         return str(vendor)
+
+    which = shutil.which("rigctl")
+    if which:
+        return which
 
     if platform.system() == "Windows":
         for candidate in (

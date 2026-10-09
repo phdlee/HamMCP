@@ -9,7 +9,16 @@ You are controlling an amateur radio or wideband receiver through Hamlib (rigctl
 3. Call `rig_connect` (or any get/set tool; get tools auto-connect).
 4. Prefer `get_rig_snapshot` for a quick status read.
 5. Use get/set frequency, mode, VFO, levels as needed.
-6. Call `rig_disconnect` when finished so other apps (e.g. WSJT-X) can use the port.
+6. Call `rig_disconnect` when finished. Do not poll the radio in a tight loop.
+
+## Implementation (important for operators)
+
+- Each Hamlib command runs a **separate one-shot `rigctl` process** (open serial, run one command, exit). On Windows you may see `rigctl` / `rigctl-wsjtx.exe` flash in Task Manager.
+- **One MCP tool call is often several processes.** Example: `get_rig_snapshot` runs `f`, `m`, `t`, `v`, and `l STRENGTH` — up to **five** `rigctl` invocations. `set_frequency` runs `F` then `f` (two processes).
+- `rig_disconnect` only clears the server's logical "connected" flag. It does **not** keep the serial port open between calls (there is no long-lived `rigctl`). The next `get_*` / `set_*` tool will auto-connect again unless you stop calling tools.
+- **Do not poll faster than you need** (e.g. every 1–2 seconds). That hammers COM5 and can fight WSJT-X or a second MCP client. For monitoring, use a human-scale interval or stop polling when idle.
+- Binary search order for `rigctl`: `HAMLIB_RIGCTL` (if set) → `PATH` → bundled `vendor/**/bin/rigctl` (shipped in this repo on Windows) → WSJT-X `rigctl-wsjtx.exe` last resort.
+- **Only these tools change the tuned frequency:** `set_frequency`, `set_mode` (indirectly), and `rigctl_command` with `F ...`. Read-only tools (`get_frequency`, `get_rig_snapshot`, etc.) must not QSY. If the VFO jumps to ~7 MHz (e.g. 7.0475 MHz) while you are on another band, something is calling `set_frequency` / `F`, or another program (WSJT-X, a second agent, a script) is controlling CAT — not passive reads.
 
 ## Units and formats
 - Frequencies are always in integer Hz (example: 14074000 = 14.074 MHz).

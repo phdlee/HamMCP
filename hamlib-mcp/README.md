@@ -21,27 +21,25 @@ This package exposes:
 ## Requirements
 
 1. Python 3.10+
-2. Hamlib `rigctl` on `PATH`, **or** `HAMLIB_RIGCTL` pointing at `rigctl` / `rigctl-wsjtx`, **or** a local `vendor/**/bin/rigctl(.exe)` tree (not committed)
-3. A CAT-capable radio (tested: Yaesu FT-817)
+2. A CAT-capable radio (tested: Yaesu FT-817)
 
-### Install Hamlib
+### Hamlib `rigctl` (included on Windows)
 
-| OS | Hint |
-|----|------|
-| Windows | [Hamlib releases](https://github.com/Hamlib/Hamlib/releases) (`hamlib-w64-*.zip`) or WSJT-X `rigctl-wsjtx.exe` |
-| Linux | Distro package providing `rigctl` (e.g. `libhamlib-utils`) |
-| macOS | `brew install hamlib` |
+| OS | What you need |
+|----|----------------|
+| **Windows** | Nothing extra — **Hamlib 4.7.2 x64 is bundled** under `vendor/hamlib-w64-4.7.2/`. `which_rigctl` should resolve to `rigctl.exe` in that tree after `git clone`. |
+| Linux | Install distro `rigctl` (e.g. `libhamlib-utils`) or set `HAMLIB_RIGCTL`. |
+| macOS | `brew install hamlib` or set `HAMLIB_RIGCTL`. |
 
-Optional local layout after downloading a Windows zip:
+Override with `HAMLIB_RIGCTL` if you want a different build. The server only falls back to WSJT-X `rigctl-wsjtx.exe` when bundled `rigctl` and `PATH` are both missing.
 
-```text
-hamlib-mcp/vendor/.../bin/rigctl.exe
-```
+License: see [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
 ## Setup
 
 ```bash
-cd hamlib-mcp
+git clone https://github.com/phdlee/HamMCP.git
+cd HamMCP/hamlib-mcp
 uv sync
 ```
 
@@ -104,8 +102,15 @@ On Linux/macOS set `HAMLIB_PORT` (e.g. `/dev/ttyUSB0`). Optionally set `HAMLIB_R
 | `HAMLIB_RIGCTL` | auto | Path to `rigctl` |
 | `HAMLIB_SET_CONF` | empty | Extra `-C key=value` pairs, comma-separated |
 
+## How it talks to the radio
+
+The server uses **one-shot `rigctl`**: each Hamlib command spawns a short-lived process. A single `get_rig_snapshot` may start `rigctl` up to five times (`f`, `m`, `t`, `v`, `l STRENGTH`). Agents that poll every 1–2 seconds will keep spawning processes and may contend with WSJT-X on the same COM port.
+
+Pin the binary with `HAMLIB_RIGCTL` if you do not want the WSJT-X fallback (`rigctl-wsjtx.exe`).
+
 ## Safety
 
 - `set_ptt(true)` keys the transmitter. Confirm antenna and power first.
 - Close WSJT-X / other CAT clients before connecting — serial ports are exclusive.
 - Prefer `get_*` tools for monitoring; use TX tools intentionally.
+- Only `set_frequency` / `rigctl_command` (`F ...`) change the VFO; if the radio jumps to ~7 MHz while you work elsewhere, look for a polling agent or WSJT-X CAT, not read-only tools.

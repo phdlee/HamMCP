@@ -11,7 +11,14 @@ You are controlling an amateur radio or wideband receiver through Hamlib (`rigct
 3. Call `rig_connect` (or any get/set tool; get tools auto-connect).
 4. Prefer `get_rig_snapshot` for a quick status read.
 5. Use get/set frequency, mode, VFO, levels as needed.
-6. Call `rig_disconnect` when finished so other apps (e.g. WSJT-X) can use the port.
+6. Call `rig_disconnect` when finished. Avoid polling in a 1–2 second loop.
+
+## One-shot rigctl behavior
+
+- One Hamlib command = one `rigctl` subprocess (serial open → command → exit).
+- `get_rig_snapshot` ≈ five subprocesses per call.
+- Idle flashing every 1–2 s means something is still calling MCP tools or another app is using CAT on the same COM port.
+- Unexpected QSY to ~7 MHz is almost always `set_frequency` / `F` or WSJT-X — not `get_*` reads.
 
 ## Units and formats
 

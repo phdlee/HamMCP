@@ -13,7 +13,6 @@ build/
 .ruff_cache/
 .mypy_cache/
 
-# Local Hamlib binaries (install separately; see README)
-vendor/
-*.zip
+# Download artifacts only (vendor tree is committed)
+vendor/**/*.zip
 work.txt

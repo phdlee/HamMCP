@@ -47,7 +47,8 @@ Register in Cursor user MCP config (`~/.cursor/mcp.json` / `%USERPROFILE%\.curso
 }
 ```
 
-See [`hamlib-mcp/README.md`](hamlib-mcp/README.md) for Hamlib install notes, tools, and safety.
+Windows clones include Hamlib `rigctl` under `hamlib-mcp/vendor/` (no separate Hamlib install).
+See [`hamlib-mcp/README.md`](hamlib-mcp/README.md) for tools, safety, and Linux/macOS notes.
 
 ## Repository layout
 
